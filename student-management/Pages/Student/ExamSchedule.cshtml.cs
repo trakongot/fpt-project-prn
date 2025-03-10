@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using StudentManagement.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using StudentManagement.Data;
 
 namespace StudentManagement.Pages.Student
 {
@@ -16,30 +16,34 @@ namespace StudentManagement.Pages.Student
             _context = context;
         }
 
-        public List<Subject> Subjects { get; set; } = new List<Subject>();
+        public List<Term> Terms { get; set; } = new List<Term>();
         public List<Exam> ExamList { get; set; } = new List<Exam>();
-        public int SelectedSubjectId { get; set; }
-        public int StudentId { get; set; }
+        public int SelectedTermId { get; set; }
+        public int UserId { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? subjectId)
+        public async Task<IActionResult> OnGetAsync(int? termId)
         {
-            StudentId = int.Parse(User.FindFirst("StudentId")?.Value ?? "0");
+            UserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
 
-            Subjects = await _context.Exams
-                .Where(e => e.Class.Students.Any(s => s.Id == StudentId))
-                .Select(e => e.Subject)
+            Terms = await _context.Exams
+                .Where(e => e.Class.Members.Any(cm => cm.UserId == UserId))
+                .Select(e => e.Term)
                 .Distinct()
                 .ToListAsync();
 
-            if (subjectId.HasValue)
+            ExamList = await _context.Exams
+                .Include(e => e.Subject)
+                .Include(e => e.Class)
+                .Include(e => e.Room)
+                .Include(e => e.Term)
+                .Include(e => e.Teacher)
+                .Where(e => e.Class.Members.Any(cm => cm.UserId == UserId))
+                .ToListAsync();
+
+            if (termId.HasValue)
             {
-                SelectedSubjectId = subjectId.Value;
-                ExamList = await _context.Exams
-                    .Where(e => e.SubjectId == SelectedSubjectId && e.Class.Students.Any(s => s.Id == StudentId))
-                    .Include(e => e.Room)
-                    .Include(e => e.Teacher)
-                    .Include(e => e.Term)
-                    .ToListAsync();
+                SelectedTermId = termId.Value;
+                ExamList = ExamList.Where(e => e.TermId == termId.Value).ToList();
             }
 
             return Page();

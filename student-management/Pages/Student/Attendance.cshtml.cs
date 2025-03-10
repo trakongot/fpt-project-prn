@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using StudentManagement.Models;
+using StudentManagement.Data;
 
 namespace StudentManagement.Pages.Student
 {
@@ -16,52 +17,96 @@ namespace StudentManagement.Pages.Student
             _context = context;
         }
 
-        public List<Subject> Subjects { get; set; } = new List<Subject>();
         public List<AttendanceSummaryViewModel> AttendanceSummary { get; set; } = new List<AttendanceSummaryViewModel>();
+        public List<SelectListItem> Terms { get; set; } = new List<SelectListItem>();
+        public List<SelectListItem> Subjects { get; set; } = new List<SelectListItem>();
+
+        [BindProperty]
+        public int SelectedTermId { get; set; }
+
+        [BindProperty]
         public int SelectedSubjectId { get; set; }
-        public int StudentId { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? subjectId)
+        public int UserId { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(int? termId, int? subjectId, string? status)
         {
-            StudentId = int.Parse(User.FindFirst("StudentId")?.Value ?? "0");
+            UserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
 
-            Subjects = await _context.Scores
-                .Where(s => s.StudentId == StudentId)
-                .Select(s => s.Subject)
+            Terms = await _context.Attendances
+                .Where(a => a.StudentId == UserId)
+                .Select(a => a.Schedule.Term)
                 .Distinct()
+                .Select(t => new SelectListItem { Value = t.Id.ToString(), Text = t.Name })
                 .ToListAsync();
 
-            if (subjectId.HasValue)
-            {
-                SelectedSubjectId = subjectId.Value;
-                await LoadAttendanceSummary(subjectId.Value);
-            }
+            Subjects = await _context.Attendances
+                .Where(a => a.StudentId == UserId)
+                .Select(a => a.Schedule.Subject)
+                .Distinct()
+                .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+                .ToListAsync();
 
-            return Page();
+            SelectedTermId = termId ?? (Terms.Any() ? int.Parse(Terms.First().Value) : 0);
+            SelectedSubjectId = subjectId ?? (Subjects.Any() ? int.Parse(Subjects.First().Value) : 0);
+
+            await LoadAttendance(SelectedTermId, SelectedSubjectId, status);
+
+            return Page(); // Use return Page instead of redirect to avoid redirect loop
         }
 
-        private async Task LoadAttendanceSummary(int subjectId)
+        public async Task<IActionResult> OnGetLoadAttendanceAsync(int termId, int subjectId, string? status)
         {
-            var attendanceRecords = await _context.Attendances
-                .Where(a => a.StudentId == StudentId && a.Schedule.SubjectId == subjectId)
-                .Include(a => a.Schedule)
-                .ToListAsync();
+            try
+            {
+                await LoadAttendance(termId, subjectId, status);
+                return Partial("_AttendanceTable", AttendanceSummary);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
 
-            AttendanceSummary = attendanceRecords
-                .GroupBy(a => a.Status)
+        private async Task LoadAttendance(int termId, int subjectId, string? status)
+        {
+            var query = _context.Attendances
+                .Include(a => a.Schedule)
+                .ThenInclude(s => s.Subject)
+                .Include(a => a.Schedule.Term)
+                .Where(a => a.StudentId == UserId);
+
+            if (termId > 0)
+            {
+                query = query.Where(a => a.Schedule.TermId == termId);
+            }
+
+            if (subjectId > 0)
+            {
+                query = query.Where(a => a.Schedule.SubjectId == subjectId);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(a => a.Status.ToString() == status);
+            }
+
+            AttendanceSummary = await query
+                .GroupBy(a => new { a.Schedule.Subject.Name, a.Status })
                 .Select(g => new AttendanceSummaryViewModel
                 {
-                    Status = g.Key.ToString(),
-                    Count = g.Count(),
-                    SubjectName = g.First().Schedule.Subject.SubjectName
-                }).ToList();
+                    SubjectName = g.Key.Name,
+                    Status = g.Key.Status.ToString(),
+                    Count = g.Count()
+                })
+                .ToListAsync();
         }
     }
 
     public class AttendanceSummaryViewModel
     {
+        public string SubjectName { get; set; }
         public string Status { get; set; }
         public int Count { get; set; }
-        public string SubjectName { get; set; }
     }
 }

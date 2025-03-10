@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using StudentManagement.Models;
+using StudentManagement.Data;
 
 namespace StudentManagement.Pages.Student
 {
@@ -17,8 +17,7 @@ namespace StudentManagement.Pages.Student
 
         public async Task OnGetAsync()
         {
-            int studentId = int.Parse(User.FindFirst("StudentId")?.Value ?? "0");
-
+            int studentId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
             Notifications = await _context.Notifications
                 .Where(n => n.ReceiverId == studentId)
                 .Include(n => n.Sender)

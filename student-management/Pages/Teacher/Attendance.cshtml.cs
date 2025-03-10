@@ -1,35 +1,47 @@
-[Authorize(Roles = "Teacher,Admin")]
-public class AttendanceModel : PageModel
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using StudentManagement.Data;
+
+
+namespace StudentManagement.Pages.Teacher
 {
-    private readonly ApplicationDbContext _context;
-
-    public AttendanceModel(ApplicationDbContext context)
+    [Authorize(Roles = "Teacher")]
+    public class AttendanceModel : PageModel
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    public List<AttendanceViewModel> AttendanceList { get; set; } = new List<AttendanceViewModel>();
-    public int SelectedClassId { get; set; }
+        public AttendanceModel(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-    [BindProperty(SupportsGet = true)]
-    public int TermId { get; set; }
+        public List<Class> Classes { get; set; } = new List<Class>();
+        public List<User> Students { get; set; } = new List<User>();
+        public int SelectedClassId { get; set; }
 
-    public async Task<IActionResult> OnGetAsync()
-    {
-        var teacherId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
-        AttendanceList = await _context.Attendances
-            .Where(a => a.Schedule.Class.TeacherId == teacherId && a.Schedule.TermId == TermId)
-            .Include(a => a.Student)
-            .Include(a => a.Schedule)
-            .ToListAsync();
+        public async Task<IActionResult> OnGetAsync(int? classId)
+        {
+            int teacherId = int.Parse(User.FindFirst("TeacherId")?.Value ?? "0");
 
-        return Page();
-    }
+            Classes = await _context.Classes
+                .Where(c => c.TeacherId == teacherId)
+                .ToListAsync();
 
-    public class AttendanceViewModel
-    {
-        public string StudentName { get; set; }
-        public string Status { get; set; }
-        public string Subject { get; set; }
+            if (classId.HasValue)
+            {
+          
+            }
+
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync(int classId, List<int> presentStudentIds)
+        {
+          
+            await _context.SaveChangesAsync();
+            return RedirectToPage(new { classId });
+        }
     }
 }

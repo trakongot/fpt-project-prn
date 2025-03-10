@@ -13,11 +13,13 @@
             font-family: 'Segoe UI', sans-serif;
             background-color: #f8f9fa;
         }
+
         .sidebar {
             min-height: 100vh;
             background-color: #343a40;
             padding-top: 20px;
         }
+
         .sidebar a {
             color: #ffffff;
             padding: 10px 20px;
@@ -25,12 +27,15 @@
             text-decoration: none;
             transition: background-color 0.3s;
         }
+
         .sidebar a:hover {
             background-color: #495057;
         }
+
         .content {
             padding: 20px;
         }
+
         .navbar-brand {
             font-weight: bold;
             color: #ffffff;
@@ -41,13 +46,13 @@
 <body>
     <div class="d-flex">
         <div class="sidebar">
-            <a href="/" class="navbar-brand">Hệ thống Sinh viên</a>
+            <a href="#" class="navbar-brand">Hệ thống Sinh viên</a>
             <hr class="bg-light" />
             <a href="/">Thời khóa biểu</a>
-            <a href="/Student/Score">Xem điểm</a>
-            <a href="/Student/ExamSchedule">Lịch thi</a>
-            <a href="/Student/Attendance">Điểm danh</a>
-            <a href="/Student/Notification">Thông báo</a>
+            <a href="/Teacher/Score">Xem điểm</a>
+            <a href="/Teacher/ExamSchedule">Lịch thi</a>
+            <a href="/Teacher/Attendance">Điểm danh</a>
+            <a href="/Notification">Thông báo</a>
             @if (User?.Identity?.IsAuthenticated == true)
             {
                 <a href="/Auth/Logout">Đăng xuất</a>

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Workspace\\Project\\fpt-project\\student-management\\student-management.csproj": {}
+    "d:\\Workspace\\Project\\fpt-project\\student-management\\student-management.csproj": {}
   },
   "projects": {
-    "D:\\Workspace\\Project\\fpt-project\\student-management\\student-management.csproj": {
+    "d:\\Workspace\\Project\\fpt-project\\student-management\\student-management.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Workspace\\Project\\fpt-project\\student-management\\student-management.csproj",
+        "projectUniqueName": "d:\\Workspace\\Project\\fpt-project\\student-management\\student-management.csproj",
         "projectName": "student-management",
-        "projectPath": "D:\\Workspace\\Project\\fpt-project\\student-management\\student-management.csproj",
+        "projectPath": "d:\\Workspace\\Project\\fpt-project\\student-management\\student-management.csproj",
         "packagesPath": "C:\\Users\\acer\\.nuget\\packages\\",
-        "outputPath": "D:\\Workspace\\Project\\fpt-project\\student-management\\obj\\",
+        "outputPath": "d:\\Workspace\\Project\\fpt-project\\student-management\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\acer\\AppData\\Roaming\\NuGet\\NuGet.Config"

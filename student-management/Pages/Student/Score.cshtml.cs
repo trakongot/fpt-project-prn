@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using StudentManagement.Models;
+using StudentManagement.Data;
+
 
 namespace StudentManagement.Pages.Student
 {
@@ -16,40 +17,47 @@ namespace StudentManagement.Pages.Student
             _context = context;
         }
 
-        public List<Subject> Subjects { get; set; } = new List<Subject>();
+        public List<Term> Terms { get; set; } = new List<Term>();
         public List<ScoreViewModel> ScoreList { get; set; } = new List<ScoreViewModel>();
 
         [BindProperty(SupportsGet = true)]
-        public int SelectedSubjectId { get; set; }
+        public int SelectedTermId { get; set; }
+        public int StudentId { get; set; }
 
-        public async Task<IActionResult> OnGetAsync()
+        public async Task<IActionResult> OnGetAsync(int? termId)
         {
-            int studentId = int.Parse(User.FindFirst("StudentId")?.Value ?? "0");
+            StudentId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
 
-            Subjects = await _context.Scores
-                .Where(s => s.StudentId == studentId)
-                .Select(s => s.Subject)
+            Terms = await _context.Scores
+                .Where(s => s.StudentId == StudentId)
+                .Select(s => s.Term)
                 .Distinct()
                 .ToListAsync();
 
-            if (SelectedSubjectId > 0)
+            if (termId.HasValue)
             {
-                await LoadScores(SelectedSubjectId, studentId);
+                SelectedTermId = termId.Value;
+                await LoadScores(termId.Value);
+            }
+            else if (Terms.Any())
+            {
+                SelectedTermId = Terms.First().Id;
+                await LoadScores(SelectedTermId);
             }
 
             return Page();
         }
 
-        private async Task LoadScores(int subjectId, int studentId)
+        private async Task LoadScores(int termId)
         {
             ScoreList = await _context.Scores
-                .Where(s => s.SubjectId == subjectId && s.StudentId == studentId)
-                .Include(s => s.Term)
+                .Where(s => s.TermId == termId && s.StudentId == StudentId)
                 .Select(s => new ScoreViewModel
                 {
                     StudentName = s.Student.Name,
                     ScoreValue = s.Value,
-                    TermName = s.Term.TermName
+                    TermName = s.Term.Name,
+                    SubjectName = s.Subject.Name
                 })
                 .ToListAsync();
         }
@@ -60,5 +68,7 @@ namespace StudentManagement.Pages.Student
         public string StudentName { get; set; } = string.Empty;
         public decimal ScoreValue { get; set; }
         public string TermName { get; set; } = string.Empty;
+        public string SubjectName { get; set; } = string.Empty;
+
     }
 }
