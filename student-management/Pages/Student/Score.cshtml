@@ -1,0 +1,77 @@
+@page "{subjectId:int?}"
+@model StudentManagement.Pages.Student.ScoreModel
+@{
+    ViewData["Title"] = "Xem Điểm Theo Môn";
+    Layout = "_Layout";
+
+    // Lấy subjectId từ URL hoặc mặc định là null
+    int selectedSubjectId = 0;
+    if (int.TryParse(Request.Query["subjectId"], out int parsedSubjectId))
+    {
+        selectedSubjectId = parsedSubjectId;
+    }
+}
+
+<div class="container mt-4">
+    <h2 class="text-center">Xem Điểm Theo Môn</h2>
+
+    <!-- Dropdown chọn môn học -->
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-3">
+            <label for="subjectSelect">Chọn Môn Học:</label>
+            <select id="subjectSelect" class="form-control">
+                <option value="">-- Chọn môn học --</option>
+                @foreach (var subject in Model.Subjects)
+                {
+                    bool isSelected = subject.Id == selectedSubjectId;
+                    <option value="@subject.Id" selected="@(isSelected ? "selected" : null)">
+                        @subject.SubjectName
+                    </option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <!-- Bảng hiển thị điểm -->
+    <table class="table table-bordered text-center">
+        <thead class="thead-dark">
+            <tr>
+                <th>Họ Tên</th>
+                <th>Điểm</th>
+                <th>Kỳ Học</th>
+            </tr>
+        </thead>
+        <tbody id="scoreTableBody">
+            @if (Model.ScoreList.Count == 0)
+            {
+                <tr>
+                    <td colspan="3">Chọn môn học để xem điểm.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var score in Model.ScoreList)
+                {
+                    <tr>
+                        <td>@score.StudentName</td>
+                        <td>@score.ScoreValue</td>
+                        <td>@score.TermName</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#subjectSelect").change(function () {
+                var subjectId = $(this).val();
+                if (subjectId) {
+                    window.location.href = `/Student/Score?subjectId=${subjectId}`;
+                }
+            });
+        });
+    </script>
+}

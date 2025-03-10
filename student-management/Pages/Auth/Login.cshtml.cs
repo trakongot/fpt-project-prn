@@ -20,7 +20,6 @@ namespace StudentManagement.Pages.Auth
 
         public void OnGet()
         {
-            // Hiển thị trang đăng nhập
         }
 
         public async Task<IActionResult> OnPostAsync(string username, string password)

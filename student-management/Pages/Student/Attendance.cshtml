@@ -1,0 +1,70 @@
+@page "{subjectId:int?}"
+@model StudentManagement.Pages.Student.AttendanceModel
+@{
+    ViewData["Title"] = "Xem Số Buổi Đi Học/Vắng Mặt";
+    Layout = "_Layout";
+
+    int selectedSubjectId = Model.SelectedSubjectId;
+}
+
+<div class="container mt-4">
+    <h2 class="text-center">Xem Số Buổi Đi Học/Vắng Mặt</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-3">
+            <label for="subjectSelect">Chọn Môn Học:</label>
+            <select id="subjectSelect" class="form-control">
+                <option value="">-- Chọn môn học --</option>
+                @foreach (var subject in Model.Subjects)
+                {
+                    bool isSelected = subject.Id == selectedSubjectId;
+                    <option value="@subject.Id" selected="@(isSelected ? "selected" : null)">
+                        @subject.SubjectName
+                    </option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <table class="table table-bordered text-center">
+        <thead class="thead-dark">
+            <tr>
+                <th>Môn Học</th>
+                <th>Trạng Thái</th>
+                <th>Số Buổi</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceTableBody">
+            @if (Model.AttendanceSummary.Count == 0)
+            {
+                <tr>
+                    <td colspan="3">Chưa có dữ liệu điểm danh cho môn học này.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var attendance in Model.AttendanceSummary)
+                {
+                    <tr>
+                        <td>@attendance.SubjectName</td>
+                        <td>@attendance.Status</td>
+                        <td>@attendance.Count</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#subjectSelect").change(function () {
+                var subjectId = $(this).val();
+                if (subjectId) {
+                    window.location.href = `/Student/Attendance?subjectId=${subjectId}`;
+                }
+            });
+        });
+    </script>
+}

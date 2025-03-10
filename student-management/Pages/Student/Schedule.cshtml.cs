@@ -1,11 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace StudentManagement.Pages.Student
 {
+    [Authorize(Roles = "Student")]
     public class ScheduleModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -16,7 +17,6 @@ namespace StudentManagement.Pages.Student
         }
 
         public List<ScheduleViewModel> ScheduleList { get; set; } = new List<ScheduleViewModel>();
-
         public List<SelectListItem> Terms { get; set; } = new List<SelectListItem>();
 
         [BindProperty]
@@ -28,21 +28,22 @@ namespace StudentManagement.Pages.Student
                 .Select(t => new SelectListItem { Value = t.Id.ToString(), Text = t.TermName })
                 .ToListAsync();
 
-            SelectedTermId = Terms.Any() ? int.Parse(Terms.First().Value) : 0;
+            SelectedTermId = Terms.FirstOrDefault()?.Value != null ? int.Parse(Terms.First().Value) : 0;
 
             await LoadSchedule(SelectedTermId);
 
             return Page();
         }
+
         public async Task<IActionResult> OnGetLoadScheduleAsync(int termId)
         {
             await LoadSchedule(termId);
-            return Partial("_ScheduleTable", ScheduleList); 
+            return Partial("_ScheduleTable", ScheduleList);
         }
 
         private async Task LoadSchedule(int termId)
         {
-            var studentId = 11;
+            var studentId = int.Parse(User.FindFirst("StudentId")?.Value ?? "0");
 
             ScheduleList = await _context.Schedules
                 .Where(s => s.Class.Students.Any(st => st.Id == studentId) && s.TermId == termId)

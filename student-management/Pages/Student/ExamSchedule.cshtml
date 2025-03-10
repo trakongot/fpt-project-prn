@@ -1,0 +1,78 @@
+@page "{subjectId:int?}"
+@model StudentManagement.Pages.Student.ExamScheduleModel
+@{
+    ViewData["Title"] = "Xem Lịch Thi";
+    Layout = "_Layout";
+
+    int selectedSubjectId = Model.SelectedSubjectId;
+}
+
+<div class="container mt-4">
+    <h2 class="text-center">Xem Lịch Thi</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-3">
+            <label for="subjectSelect">Chọn Môn Thi:</label>
+            <select id="subjectSelect" class="form-control">
+                <option value="">-- Chọn môn thi --</option>
+                @foreach (var subject in Model.Subjects)
+                {
+                    bool isSelected = subject.Id == selectedSubjectId;
+                    <option value="@subject.Id" selected="@(isSelected ? "selected" : null)">
+                        @subject.SubjectName
+                    </option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <table class="table table-bordered text-center">
+        <thead class="thead-dark">
+            <tr>
+                <th>Môn Học</th>
+                <th>Ngày Thi</th>
+                <th>Giờ Bắt Đầu</th>
+                <th>Giờ Kết Thúc</th>
+                <th>Phòng Thi</th>
+                <th>Giáo Viên</th>
+                <th>Kỳ Học</th>
+            </tr>
+        </thead>
+        <tbody id="examTableBody">
+            @if (Model.ExamList.Count == 0)
+            {
+                <tr>
+                    <td colspan="7">Chọn môn học để xem lịch thi.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var exam in Model.ExamList)
+                {
+                    <tr>
+                        <td>@exam.Subject.SubjectName</td>
+                        <td>@exam.ExamDate.ToString("dd/MM/yyyy")</td>
+                        <td>@exam.StartTime.ToString(@"hh\:mm")</td>
+                        <td>@exam.EndTime.ToString(@"hh\:mm")</td>
+                        <td>@exam.Room.RoomName</td>
+                        <td>@exam.Teacher.Name</td>
+                        <td>@exam.Term.TermName</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#subjectSelect").change(function () {
+                var subjectId = $(this).val();
+                if (subjectId) {
+                    window.location.href = `/Student/ExamSchedule?subjectId=${subjectId}`;
+                }
+            });
+        });
+    </script>
+}

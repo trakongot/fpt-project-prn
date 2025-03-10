@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Attendance> Attendances { get; set; }
     public DbSet<Score> Scores { get; set; }
     public DbSet<Term> Terms { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     private static readonly DateTime StartDate = new DateTime(2024, 1, 1);
     private static readonly DateTime EndDate = new DateTime(2024, 6, 1);
